@@ -1,4 +1,5 @@
 import json
+import pypdf
 def get_model_size(model):
     param_size = 0
     for param in model.parameters():
@@ -19,6 +20,20 @@ def read_json(json_file:str):
         json_data = json.load(f)
     return json_data
 
+def read_pdf(pdf_file="data/dataset.pdf"):
+    """
+    return pdf and return text
+    """
+    pdf = pypdf.PdfReader(pdf_file)
+    text = ""
+    for page in pdf.pages:
+        text += page.extract_text()
+    # write to file
+    with open("data/dataset.txt", "w", encoding="utf-8") as f:
+        f.write(text)
+    return text
 
 if __name__ == "__main__":
-    print(read_json("questions.json")[0])
+    # print(read_json("questions.json")[0])
+    pdf = read_pdf()
+    print(len(pdf))

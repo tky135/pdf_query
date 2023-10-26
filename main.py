@@ -11,15 +11,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 tokenizer = AutoTokenizer.from_pretrained("FlagAlpha/Llama2-Chinese-7b-Chat")
 model = AutoModelForCausalLM.from_pretrained("FlagAlpha/Llama2-Chinese-7b-Chat")
-# model.half()
+model.half()
 
 # raise Exception("break")
 pipe = pipeline("text-generation", device=device, tokenizer=tokenizer, model=model)    # Use pipeline as a high level helper
-# response = pipe("小王是一个专业的汽车工程师。汽车说明手册上说“设置中央显示屏显示状态：调节中央显示屏显示模式，在中央显示屏中点击-设置-显示，进入显示设置界面。点击设置中央显示屏显示模式（日间模式、夜间模式、自动)。说明！\n您可以依据个人喜好选择自动模式：\n□ 日出到日落：白天显示日间模式，晚上显示夜间模式。\n□ 自定时段：依据设置的时间段切换显示模式。\n□ 日夜模式选择自动模式后，中央显示屏会自动切换日间模式或夜间模式。小王对汽车说明手册了如指掌。小李是一名购买汽车的顾客。小李：自动模式下，中央显示屏是如何切换日间和夜间模式的？小王：", max_new_tokens=128)[0]["generated_text"]      # Run the pipeline, response is a list
+response = pipe("你要在一本汽车说明书里查找各种问题，并且尽可能多地罗列出应该搜索的关键词，并且按优先级从大到小。此外，关键词最好为两个字，并且不容易出现在其他问题中。关键词的近义词也应该包括。问题：什么时候应该为车辆打蜡？答案：打蜡，涂蜡，蜡，保养，维护。问题：如何启用自动泊车功能？：自动泊车，泊车，停车，功能。问题：我如何知道我的汽车的安全带是正常工作的?答案：安全带，安全，检查，正常工作。问题：什么是转向助力系统？答案：转向助力系统，助力系统，转向系统，转向，助力。问题：涉水行驶前应注意什么？答案：涉水行驶，涉水，水，行驶。问题：在更换雨刮片时需要注意什么？答案：更换雨刮片，雨刮片，雨刮，雨刷。问题：如何通过中央显示屏进行副驾驶员座椅设置？答案：", max_new_tokens=64)
+# response = pipe("你要在一本汽车说明书里查找各种问题，并且尽可能多地罗列出应该搜索的关键词，并且按优先级从大到小。问题：什么时候应该为车辆打蜡？答案：打蜡，涂蜡，蜡，保养，维护。问题：如何启用自动泊车功能？：自动泊车，泊车，停车，功能。问题：我如何知道我的汽车的安全带是正常工作的?答案：安全带，安全，检查，正常工作。问题：什么是转向助力系统？答案：", max_new_tokens=64)
+print(response[0]["generated_text"])
+raise Exception("break")
 # print(type(response))
 # print(response)
-CONTEXT_WINDOW = 2048
-NUM_OUTPUT = 256
+CONTEXT_WINDOW = 4096
+NUM_OUTPUT = 128
+
 qa_template = """
     小王是一个专业的汽车工程师。
     小王对汽车说明手册了如指掌。
@@ -32,9 +36,10 @@ refine_template = """
     汽车说明手册上写道：{context_msg}
     有顾客问小王{query_str}
     小王之前的回答是：{existing_answer}
-    结合汽车说明手册上新的信息和之前的回答（如果汽车说明手册里没有新的信息，保留原本回答），小王给出了具体可实施的回答："""
+    结合汽车说明手册上新的信息和之前的回答（如果汽车说明手册里没有和{query_str}有关的信息，保留之前回答），小王给出了具体可实施的回答："""
 qa_template = PromptTemplate(qa_template)
 refine_template = PromptTemplate(refine_template)
+
 
 class OurLLM(CustomLLM):
     @property
@@ -53,6 +58,8 @@ class OurLLM(CustomLLM):
         response = pipe(prompt, max_new_tokens=NUM_OUTPUT)[0]["generated_text"]
         text = response[prompt_length:]
         print(text)
+        while text[0] == "\n" or text[0] == " ":
+            text = text[1:]
         # some output text processing here
         text = text.split("\n")[0]
         # remove quotation marks
