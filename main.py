@@ -11,7 +11,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 tokenizer = AutoTokenizer.from_pretrained("FlagAlpha/Llama2-Chinese-7b-Chat")
 model = AutoModelForCausalLM.from_pretrained("FlagAlpha/Llama2-Chinese-7b-Chat")
-model.half()
+# model.half()
 
 # raise Exception("break")
 pipe = pipeline("text-generation", device=device, tokenizer=tokenizer, model=model)    # Use pipeline as a high level helper
@@ -32,7 +32,7 @@ refine_template = """
     汽车说明手册上写道：{context_msg}
     有顾客问小王{query_str}
     小王之前的回答是：{existing_answer}
-    结合汽车说明手册上新的信息和之前的回答，小王给出了具体可实施的回答："""
+    结合汽车说明手册上新的信息和之前的回答（如果汽车说明手册里没有新的信息，保留原本回答），小王给出了具体可实施的回答："""
 qa_template = PromptTemplate(qa_template)
 refine_template = PromptTemplate(refine_template)
 
@@ -57,6 +57,8 @@ class OurLLM(CustomLLM):
         text = text.split("\n")[0]
         # remove quotation marks
         text = text.replace("“", "")
+        # only keep the first sentence
+        text = text.split("。")[0]
         return CompletionResponse(text=text)
 
     @llm_completion_callback()

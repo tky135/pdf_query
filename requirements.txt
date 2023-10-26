@@ -1,0 +1,7 @@
+hugginface_hub
+transformers
+sentencepiece
+protobuf
+pypdf
+
+remove metadata from llama_index/llama_index/readers/file/docs_reader.py
