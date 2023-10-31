@@ -29,7 +29,7 @@ def read_pdf(pdf_file="data/dataset.pdf"):
     for page in pdf.pages:
         text += page.extract_text()
     # write to file
-    with open("data/dataset.txt", "w", encoding="utf-8") as f:
+    with open("data/dataset_new.txt", "w", encoding="utf-8") as f:
         f.write(text)
     return text
 
