@@ -1,1 +1,6 @@
 *.tky
+chunks
+model_cache
+query_locate
+__pycache__
+
