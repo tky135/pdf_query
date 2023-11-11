@@ -315,11 +315,11 @@ def get_chunks():
 
         # output_lines.append(line)
 
-    with open("dataset_upda.txt", "w") as f:
-        for chunk in chunks:
-            for line in chunk:
-                f.write(line)
-            f.write("\n")
+    # with open("dataset_upda.txt", "w") as f:
+    #     for chunk in chunks:
+    #         for line in chunk:
+    #             f.write(line)
+    #         f.write("\n")
     chunks = ["".join(chunk) for chunk in chunks]
     return chunks
         

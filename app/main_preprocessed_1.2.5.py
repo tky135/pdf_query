@@ -1,9 +1,5 @@
 from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
-from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext, SummaryIndex
-from llama_index.llms import CustomLLM, LLMMetadata, CompletionResponse, CompletionResponseGen
-from llama_index.llms.base import llm_completion_callback
-from llama_index.prompts import PromptTemplate
+from transformers import AutoTokenizer, AutoModel
 import json
 from typing import Any
 import torch
@@ -14,6 +10,7 @@ import jieba.posseg
 import os
 import sys
 import tky_preprocess
+DEBUG = 0
 sections = [
         "本手册相关的重要信息",
         "敬告用户",
@@ -241,8 +238,8 @@ sections = [
     ]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True, cache_dir="model_cache")
-model = AutoModel.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True, cache_dir="model_cache").cuda()
+tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True, cache_dir="../model_cache")
+model = AutoModel.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True, cache_dir="../model_cache").cuda()
 log_file = open("log.tky", "w", encoding="utf-8")
 
 pipe = pipeline("text-generation", device=device, tokenizer=tokenizer, model=model)    # Use pipeline as a high level helper
@@ -252,15 +249,16 @@ inverted_index = {}
 if os.path.exists("chunks"):
     os.system("rm -rf chunks")
 os.mkdir("chunks")
-# write each txt chunk to file
-for i in range(len(txt_list)):
-    with open("chunks/%d.txt" % i, "w", encoding="utf-8") as f:
-        print(txt_list[i], file=f)
-# write inverted index to file
-with open("inverted_index.txt", "w", encoding="utf-8") as f:
-    for key, value in inverted_index.items():
-        print(key, value, file=f)
-        print("-----------------------------------------------------", file=f)
+if DEBUG:
+    # write each txt chunk to file
+    for i in range(len(txt_list)):
+        with open("chunks/%d.txt" % i, "w", encoding="utf-8") as f:
+            print(txt_list[i], file=f)
+    # write inverted index to file
+    with open("inverted_index.txt", "w", encoding="utf-8") as f:
+        for key, value in inverted_index.items():
+            print(key, value, file=f)
+            print("-----------------------------------------------------", file=f)
 
 # 2. RETRIEVE QUERIES
 json_output = read_json("questions.json")
@@ -337,7 +335,7 @@ for i in range(len(queries)):
                     to_search[j] = len(keyword)
 
 
-    print(keywords)
+    # print(keywords)
     for word in keywords:
         if word in inverted_index:  # will not work for longer words not in the inverted index
             for index in inverted_index[word]:
@@ -345,14 +343,14 @@ for i in range(len(queries)):
                     to_search[index] = 0
                 to_search[index] += len(word) # give more weight to longer words
         else:
-            print("word %s not in inverted index" % word, file=sys.stderr, flush=True)
+            # print("word %s not in inverted index" % word, file=sys.stderr, flush=True)
             # search all the chunks
             for index in range(len(txt_list)):
                 if word in txt_list[index]:
                     if index not in to_search:
                         to_search[index] = 0
                     to_search[index] += len(word)
-            print("finished searching all the chunks", file=sys.stderr, flush=True)
+            # print("finished searching all the chunks", file=sys.stderr, flush=True)
 
 
     # sort the keys by values
@@ -406,5 +404,5 @@ for i in range(len(queries)):
 
 
 # save json file
-with open("answers.json", "w", encoding="utf-8") as f:
+with open("result.json", "w", encoding="utf-8") as f:
     json.dump(json_output, f, ensure_ascii=False, indent=4)
