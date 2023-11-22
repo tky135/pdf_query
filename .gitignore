@@ -1,6 +1,9 @@
 *.tky
 chunks
 model_cache
-query_locate
+query_locate*
 __pycache__
+inverted_index.txt
+result.json
+pre_log.txt
 

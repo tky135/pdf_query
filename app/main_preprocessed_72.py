@@ -363,7 +363,7 @@ for i in range(len(queries)):
         txt[0] += txt_list[index[0]]
     for index in to_search[:3]:
         txt[1] += txt_list[index[0]]
-    for index in to_search[1:8]:
+    for index in to_search[1:6]:
         txt[2] += txt_list[index[0]]
     
     if not os.path.exists("query_locate"):
