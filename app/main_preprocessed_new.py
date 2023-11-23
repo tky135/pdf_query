@@ -9,7 +9,7 @@ import jieba.analyse
 import jieba.posseg
 import os
 import sys
-import tky_preprocess
+import preprocess
 DEBUG = 0
 sections = [
         "本手册相关的重要信息",
@@ -245,7 +245,7 @@ log_file = open("log.tky", "w", encoding="utf-8")
 
 # pipe = pipeline("text-generation", device=device, tokenizer=tokenizer, model=model)    # Use pipeline as a high level helper
 
-txt_list = tky_preprocess.get_chunks()
+txt_list = preprocess.get_chunks()
 inverted_index = {}
 if os.path.exists("chunks"):
     os.system("rm -rf chunks")

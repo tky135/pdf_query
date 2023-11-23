@@ -322,4 +322,23 @@ def get_chunks():
     #         f.write("\n")
     chunks = ["".join(chunk) for chunk in chunks]
     return chunks
-        
+
+def get_chunks_naive(chunk_size, chunk_overlap):
+    import pypdf
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    r_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        separators=["(?<=。)","(?<=，)", ""], 
+        is_separator_regex=True
+    )
+    pdf = pypdf.PdfReader("dataset.pdf")
+    all_text = ""
+    for page in pdf.pages:
+        all_text += page.extract_text()
+    chunks = r_splitter.split_text(all_text)
+    return chunks
+
+
+if __name__ == "__main__":
+    get_chunks_naive()
